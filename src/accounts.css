@@ -1,0 +1,249 @@
+.accounts-list-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.accounts-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.account-profile-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.account-profile-card:hover {
+  background: rgba(255, 215, 0, 0.03);
+  border-color: var(--color-gold);
+  transform: translateY(-2px);
+}
+
+.account-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-avatar {
+  font-size: 1.4rem;
+  background: rgba(0,0,0,0.2);
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-name-title {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.account-id-sub {
+  font-size: 0.75rem;
+  color: #777;
+}
+
+.account-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 10px;
+}
+
+.account-role-tag {
+  font-size: 0.8rem;
+  color: #aaa;
+  background: rgba(0,0,0,0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.account-status-dot {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.status-green {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4CAF50;
+}
+
+.status-gray {
+  background: rgba(255, 255, 255, 0.08);
+  color: #aaa;
+}
+
+.account-profile-card.clickable {
+  cursor: pointer;
+}
+
+/* --- OVERLAY MODAL CANVAS RULES --- */
+.modal-wrapper-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 6, 13, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 400;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.account-detail-modal {
+  background: rgba(8, 11, 22, 0.95);
+  border: 2px solid var(--color-gold);
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%;
+  max-width: 460px;
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+  position: relative;
+  box-sizing: border-box;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-close-cross {
+  position: absolute;
+  top: 15px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close-cross:hover {
+  color: var(--color-gold);
+}
+
+.modal-header-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+}
+
+.modal-large-avatar {
+  font-size: 2rem;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.modal-account-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.modal-account-subtitle {
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-body-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.data-field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+.field-label {
+  font-size: 0.88rem;
+  color: #aaa;
+}
+
+.field-value {
+  font-size: 0.92rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.field-value.highlight-string {
+  color: var(--color-gold);
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+/* --- BLANK BUTTON ACTIONS AREA --- */
+.modal-actions-area {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.modal-blank-btn {
+  flex: 1;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 0.88rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.modal-blank-btn.execution-accent {
+  background: rgba(255, 215, 0, 0.12);
+  color: var(--color-gold);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.modal-blank-btn.danger-accent {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.25);
+}
+
+.modal-blank-btn:hover {
+  opacity: 0.85;
+}
+
+.modal-blank-btn:active {
+  transform: scale(0.98);
+}
