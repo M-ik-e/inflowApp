@@ -4,19 +4,18 @@ import React, { useState } from 'react';
 interface ConfirmationModalProps {
     clickSource: string;
     onClose: () => void;
-    onConfirm: (event: string, confirmation: boolean) => void;
+    onConfirm: (confirmation: boolean) => void;
 }
 
-export default function ConfirmationModal({clickSource, onClose, onConfirm }: ConfirmationModalProps) {
+export default function ConfirmationModal({onClose, onConfirm }: ConfirmationModalProps) {
     const [confirmation, setConfirmation] = useState<boolean>(false);
-    const [outsideEvent, setOutsideEvent] = useState<string>('');
 
 
     const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
+        console.log("Confirmation hit");
         setConfirmation(true);
-        setOutsideEvent(clickSource);
-        onConfirm(outsideEvent, confirmation);
+        onConfirm(confirmation);
     };
 
     return (
@@ -24,14 +23,14 @@ export default function ConfirmationModal({clickSource, onClose, onConfirm }: Co
         <div className="modal-window-card" onClick={(e) => e.stopPropagation()}>
             
             <div className="modal-header-row">
-            <span className="modal-title-text">🔑 Change Password</span>
+            <span className="modal-title-text">Confirmation Required</span>
             <button type="button" className="btn-close-modal" onClick={onClose}>
                 &times;
             </button>
             </div>
             
             <form className="modalForm" onSubmit={handleSubmit}>
-            <h3>
+            <h3 className="modal-title-text">
                 Please confirm action
             </h3>
             

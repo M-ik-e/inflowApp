@@ -52,6 +52,8 @@ const IMAGE_URLS = [
   empt_lemon,
 ];
 
+export const [currentLang, setCurrentLang] = useState<LangCode>('RU');
+export const t = dictionary[currentLang];
 
 export default function App() {
 
@@ -76,13 +78,22 @@ export default function App() {
 
   const [accessGrantedLevel, setAccessGrantedLevel] = useState(-1);
 
+  const handleAccessLevel = () => {
+    if(!user){return;
+//MARK:: todo access level
+    } //else if(user.)
+
+  }
+
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  const [currentLang, setCurrentLang] = useState<LangCode>('RU');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal control state
   const [authWindowActive, setAuthWindowActive] = useState(false);
+
+  const [clickSourceForModal, setClickSourceForModal] = useState('');
+  const [confirmationHit, setConfirmationHit] = useState(false);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState<string>('');
@@ -112,13 +123,22 @@ export default function App() {
     createAnAccount();
   }
 
-  const handleConfirmationProcess = (event : string, confirmation: boolean) =>{
-    if(event === 'accountDeletion'){
-      deleteAccount();
-    }else if(event === 'justConfirm'){
+  useEffect(() => {
+    if(!confirmationHit)return;
 
-    }
+    if(clickSourceForModal === 'accountDeletion'){
+          deleteAccount();
+      }else if(clickSourceForModal === 'deleteUser'){
+          accountUsers('disable');
+      }
+
+  }, [confirmationHit]);
+    
+  const handleConfirmationProcess = (confirmation: boolean) =>{
+    setConfirmationHit(confirmation);  
   }
+
+
 
   // Execution Process Status Hooks//
   const [apiLoading, setApiLoading] = useState<boolean>(false);
@@ -223,6 +243,10 @@ export default function App() {
       }
     };
 
+    const handleAccountSelect = (account: AccountData) =>{
+      setSelectedAccount(account);
+    }
+
 
   useEffect(() => {
     if (activeTab !== 'settings') return;
@@ -232,10 +256,34 @@ export default function App() {
   //end of accounts tab variables and functions
   
   useEffect(() => {
-    if (activeSubTab !== 'accounts' && !selectedAccount && users.length > 0) return;
+    if (!selectedAccount) return;
 
-    accountUsers('list');
-    console.log("selected account is: ", selectedAccount?.account_id);
+    const getAllusersOnTheAcoount = async () => {
+    setApiLoading(true);
+    setApiError(null);
+    setApiSuccessData(null);
+    
+      try {
+        const response = await fetch(`/api/v1/users`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            'X-Account-Id': selectedAccount.account_id
+          }
+        });
+        if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
+        
+        setUsers(await response.json());
+      
+      } catch (err: any) {
+        setApiError(err.message || 'An error occurred.');
+      } finally {
+        setApiLoading(false);
+      }
+    }
+
+    getAllusersOnTheAcoount();
   }, [selectedAccount]);
 
 
@@ -255,14 +303,22 @@ export default function App() {
       setApiLoading(true);
       setApiError(null);
 
+      setSelectedUserId(selectedUser?.user_id || 'no id');
       setSelectedAccountId(selectedAccount?.account_id || '');
 
       const token = localStorage.getItem('authToken');
 
+      const queryParams = new URLSearchParams();
+
+      const appendIfValid = (key: string, value: string | undefined | null) => {
+          if (value && value.trim() !== '') {
+            queryParams.append(key, value);
+          }
+      };
+
       const payload: Record<string, any> = {};
       const custHeaders = new Headers();
   
-      
       custHeaders.append('Content-Type', 'application/json');
       custHeaders.append('Authorization', `Bearer ${token}`);
       custHeaders.append('X-Account-Id', selectedAccountId);
@@ -280,21 +336,32 @@ export default function App() {
 
       }else if(functioncase === 'read_one'){
         setMethod('GET');
+        
+        appendIfValid('user_id', selectedUserId);
         custHeaders.append('user_id', selectedUserId);
+      
       }else if(functioncase === 'change_role'){
         setMethod('PATCH');
+        
+        appendIfValid('user_id', selectedUserId);
         custHeaders.append('user_id', selectedUserId);
         payload.role = userRole;
         payload.disabled = isUserDisabled;
+      
       }else if(functioncase === 'disable'){
+        console.log("We are at delete function, selected user is", selectedUser);
+        
         setMethod('DELETE');
+        appendIfValid('user_id', selectedUserId);
         custHeaders.append('user_id', selectedUserId);
       }
+  
       console.log("requst sent with accountid", selectedAccountId);
+      console.log("requst sent with userId", selectedUserId);
       console.log("requst sent with token", token);
       console.log("requst sent with payload", payload);
         try {
-          const response = await fetch('/api/v1/users', {
+          const response = await fetch(`/api/v1/users?${queryParams.toString()}`, {
           method: method,
           headers: custHeaders,
           ...(method === 'POST' || method === 'PATCH' ? { body: JSON.stringify(payload) } : {})
@@ -314,6 +381,7 @@ export default function App() {
         setApiError(err.message || 'An unexpected connection error occurred.');
       } finally {
         setApiLoading(false);
+        setConfirmationHit(false);
       }
   }
 
@@ -322,7 +390,7 @@ export default function App() {
   const [customerPhone, setCustomerPhone] = useState('');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const t = dictionary[currentLang];
+  
 
   // 2. Generate even but randomized positions
   const distributedImages = useMemo(() => {
@@ -437,7 +505,7 @@ export default function App() {
       
       // 4. Securely store the token for subsequent API requests
       localStorage.setItem('authToken', loginData.access_token);
-      //console.log('Bearer now: ', loginData.access_token);
+      console.log('loginData received', loginData);
       // 2. SECOND CALL: GET request with API Key AND Bearer Token
       const dataResponse = await fetch('/api/v1/me', {
         method: 'GET',
@@ -450,6 +518,7 @@ export default function App() {
 
       const userData = await dataResponse.json();
 
+      console.log("User data returned ", userData);
       // 5. Update your app state with user info
       updateUserField('id', userData.id);
       updateUserField('username', userData.display_name);
@@ -950,28 +1019,7 @@ export default function App() {
   }
 
   //MARK: getAllusersOnTheAcoount fAv
-  const getAllusersOnTheAcoount = async () => {
-    setApiLoading(true);
-    setApiError(null);
-    setApiSuccessData(null);
-    
-    try {
-      const response = await fetch(`/api/v1/users`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': selectedAccountId || ''
-        }
-      });
-      if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
-      setApiSuccessData(await response.json());
-    } catch (err: any) {
-      setApiError(err.message || 'An error occurred.');
-    } finally {
-      setApiLoading(false);
-    }
-  }
+  
 
 
   //MARK: addaPersonToTheAccount fAv
@@ -1119,7 +1167,6 @@ export default function App() {
         setApiSuccessData(null);
     
         const token = localStorage.getItem('authToken');
-        const accountId = selectedAccountId;
     
         const queryParams = new URLSearchParams();
         //console.log("account fetched is", accountId);
@@ -1628,7 +1675,7 @@ export default function App() {
                                 ) : (
                                   <div className="accounts-grid-layout">
                                     {accounts.map((acc) => (
-                                      <div key={acc.account_id} className="account-profile-card clickable" onClick={() => setSelectedAccount(acc)}>
+                                      <div key={acc.account_id} className="account-profile-card clickable" onClick={() => handleAccountSelect(acc)}>
                                         <div className="account-card-header">
                                           <span className="account-avatar">💼</span>
                                           <div className="account-details">
@@ -1649,7 +1696,7 @@ export default function App() {
                           </>
                         )}
 
-                         {activeSubTab === 'users' && (<></>)}
+                        {activeSubTab === 'users' && (<></>)}
 
                     </div>  
                   </div>
@@ -1901,7 +1948,7 @@ export default function App() {
 
       {isConfirmationModalOpen && (
         <ConfirmationModal
-          clickSource='accountDeletion'
+          clickSource = {clickSourceForModal}
           onClose={() => setIsConfirmationModalOpen(false)}
           onConfirm={handleConfirmationProcess}
         />
@@ -1949,7 +1996,7 @@ export default function App() {
               <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
                 {t.add_a_user}
               </button>
-              <button className="modal-blank-btn danger-accent" onClick={() => setIsConfirmationModalOpen(true)}>
+              <button className="modal-blank-btn danger-accent" onClick={() => {setClickSourceForModal('deleteAccount'); setIsConfirmationModalOpen(true)}}>
                 {t.deleteAccount}
               </button>
             </div>
@@ -1957,29 +2004,37 @@ export default function App() {
             <hr className='horizontalLineStyle'/>
             <p style={{ height: '1rem'}}></p>
             
-            {users.length === 0 ? (
-                <div className="activity-feed">
-                  <p style={{ margin: 0, color: '#ccc' }}>{t.empty_users_list}</p>
-                    
-                </div>
-              ) : (
-                <div className="accounts-grid-layout">
-                  {users.map((acc) => (
-                    <div key={acc.user_id} className="account-profile-card clickable" onClick={() => setSelectedUser(acc)}>
-                      <div className="account-card-header">
-                        <span className="account-avatar">💼</span>
-                        <div className="account-details">
-                          <strong className="account-name-title">{acc.display_name || 'Unnamed Account'}</strong>
-                          <div/>
-                          <span className="account-id-sub">ID:{acc.user_id}</span>
+            {apiLoading && <p style={{ color: '#FFD700' }}>Syncing secure account access registries...</p>}
+            {apiError && <div className="activity-feed error-alert"><p style={{ margin: 0 }}>⚠️ {apiError}</p></div>}
+            
+            {!apiLoading && !apiError &&(
+            <>
+              {users.length === 0 ? (
+                  <div className="activity-feed">
+                    <p style={{ margin: 0, color: '#ccc' }}>{t.empty_users_list}</p>
+                      
+                  </div>
+                ) : (
+                  <div className="accounts-grid-layout">
+                    {users.map((acc) => (
+                      <div key={acc.user_id} className="account-profile-card clickable" onClick={() => setSelectedUser(acc)}>
+                        <div className="account-card-header">
+                          <span className="account-avatar">💼</span>
+                          <div className="account-details">
+                            <strong className="account-name-title">{acc.display_name || 'Unnamed Account'}</strong>
+                            <div/>
+                            <span className="account-id-sub">ID:{acc.user_id}</span>
+                          </div>
+                        </div>
+                        <div className="account-card-meta">
+                          <span className="account-role-tag">Role: {acc.role || 'Member'}</span>
+                          <span className="account-role-tag">Dis? {acc.disabled_at || 'Member'}</span>
                         </div>
                       </div>
-                      <div className="account-card-meta">
-                        <span className="account-role-tag">Role: {acc.role || 'Member'}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
+              </>
               )}
           </div>
         </div>
@@ -2017,18 +2072,13 @@ export default function App() {
               <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
                 {t.changeARole}
               </button>
-              <button className="modal-blank-btn danger-accent" onClick={() => setIsConfirmationModalOpen(true)}>
-                {t.deleteAccount}
+              <button className="modal-blank-btn danger-accent" onClick={() =>{setClickSourceForModal('deleteUser'); setIsConfirmationModalOpen(true)}}>
+                {t.deleteUser}
               </button>
-            </div>
-            <p style={{ height: '1rem'}}></p>
-            <hr className='horizontalLineStyle'/>
-            <p style={{ height: '1rem'}}></p>
-            
+            </div> 
           </div>
         </div>
       )}
-
 
 
       <footer className="footer-bar">

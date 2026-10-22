@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import {t} from './App';
 
 // Define explicit types for the component's interactive handlers
 interface addAUserModalProps {
@@ -14,7 +15,6 @@ export default function AddAUserModal({ onClose, onConfirm }: addAUserModalProps
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
-
     onConfirm(userEmail, userName, userPassword, userRole);
   };
 
@@ -23,7 +23,7 @@ export default function AddAUserModal({ onClose, onConfirm }: addAUserModalProps
       <div className="modal-window-card" onClick={(e) => e.stopPropagation()}>
         
         <div className="modal-header-row">
-          <span className="modal-title-text">Add a user</span>
+          <span className="modal-title-text">{t.add_a_user}</span>
           <button type="button" className="btn-close-modal" onClick={onClose}>
             &times;
           </button>
@@ -54,7 +54,12 @@ export default function AddAUserModal({ onClose, onConfirm }: addAUserModalProps
           <div className="form-group-row">
                 <div className="form-input-block">
                     <label>User Role</label>
-                    <input type="text" value={userRole} onChange={(e) => setUserRole(e.target.value)}  />
+                    <select value={userRole} onChange={(e) => setUserRole(e.target.value)}>
+                        <option value={'owner'}>1 Day</option>
+                        <option value={'admin'}>7 Days </option>
+                        <option value={'analyst'}>14 Days</option>
+                        <option value={'readonly'}>30 Days</option>
+                    </select>
                 </div>
             </div>
 
