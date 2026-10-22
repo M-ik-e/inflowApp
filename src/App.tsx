@@ -12,6 +12,7 @@ import ApiResultModal from './modal_for_responce';
 import PasswordChangeModal from './modal_pswd';
 import AccountCreateModal from './modal_account_creation';
 import ConfirmationModal from './confirmationModal';
+import AddAUserModal from './add_a_user_modal';
 
 // Define the structure for each rendered image
 interface DistributedImage {
@@ -54,6 +55,8 @@ const IMAGE_URLS = [
 
 export default function App() {
 
+  type AccessLevel = 1 | 2 | 3 | 4;
+
   type ViewMode = 'home' | 'cabinet';
   const [currentView, setCurrentView] = useState<ViewMode>('home');
 
@@ -70,6 +73,8 @@ export default function App() {
   const handleAccountChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedAccountId(event.target.value);
   };
+
+  const [accessGrantedLevel, setAccessGrantedLevel] = useState(-1);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -88,7 +93,13 @@ export default function App() {
 
   const [isUserAdditionModalOpen, setIsUserAdditionModalOpen] = useState(false);
 
-  const handleAddUser = () => {}; //MARK:: TODO
+  const handleAddUser = (userEmail: string, userName: string, userPassword: string, userRole: string) => {
+    setUserEmail(userEmail);
+    setUserName(userName);
+    setUserPassword(userPassword);
+    setUserRole(userRole);
+    accountUsers('add');
+  }; //MARK:: TODO
 
   const handlePasswordSubmit = (oldPass: string, newPass: string) => {
     setCurrentPassword(oldPass);
@@ -204,7 +215,7 @@ export default function App() {
         // Adjust array assignments target based on your precise backend nested data response keys
         setAccounts(data.accounts || data);
         //console.log("Fetched accounts:", data.accounts || data);
-        localStorage.setItem('account_id', accounts.length > 0 ? accounts[0].account_id : '[]');
+        //localStorage.setItem('account_id', accounts.length > 0 ? accounts[0].account_id : '[]');
       } catch (err: any) {
         setApiError(err.message || 'An unexpected connection error occurred.');
       } finally {
@@ -219,6 +230,14 @@ export default function App() {
     fetchAccounts();
   }, [activeTab]);
   //end of accounts tab variables and functions
+  
+  useEffect(() => {
+    if (activeSubTab !== 'accounts' && !selectedAccount && users.length > 0) return;
+
+    accountUsers('list');
+    console.log("selected account is: ", selectedAccount?.account_id);
+  }, [selectedAccount]);
+
 
   //MARK:: Users function and var
   const [users, setUsers] = useState<UserData[]>([]);
@@ -230,17 +249,20 @@ export default function App() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [isUserDisabled, setIsUserDisabled] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [method, setMethod] = useState<string>(''); //out of the scope
 
   const accountUsers = async (functioncase: string) => {
       setApiLoading(true);
       setApiError(null);
+
+      setSelectedAccountId(selectedAccount?.account_id || '');
+
       const token = localStorage.getItem('authToken');
 
       const payload: Record<string, any> = {};
-
-      const [method, setMethod] = useState<string>('');
       const custHeaders = new Headers();
   
+      
       custHeaders.append('Content-Type', 'application/json');
       custHeaders.append('Authorization', `Bearer ${token}`);
       custHeaders.append('X-Account-Id', selectedAccountId);
@@ -264,18 +286,17 @@ export default function App() {
         custHeaders.append('user_id', selectedUserId);
         payload.role = userRole;
         payload.disabled = isUserDisabled;
-      }else if(functioncase === 'disable')
+      }else if(functioncase === 'disable'){
         setMethod('DELETE');
         custHeaders.append('user_id', selectedUserId);
-      
+      }
+      console.log("requst sent with accountid", selectedAccountId);
+      console.log("requst sent with token", token);
+      console.log("requst sent with payload", payload);
         try {
           const response = await fetch('/api/v1/users', {
           method: method,
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-              'X-Account-Id': selectedAccountId
-          },
+          headers: custHeaders,
           ...(method === 'POST' || method === 'PATCH' ? { body: JSON.stringify(payload) } : {})
         });
 
@@ -285,8 +306,9 @@ export default function App() {
 
         const data = await response.json();
         // Adjust array assignments target based on your precise backend nested data response keys
-        setUsers(data.accounts || data);
+        setUsers(data.users || data);
         //console.log("Fetched accounts:", data.accounts || data);
+        setIsUserAdditionModalOpen(false);
         
       } catch (err: any) {
         setApiError(err.message || 'An unexpected connection error occurred.');
@@ -939,7 +961,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId || ''
         }
       });
       if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
@@ -1635,8 +1657,6 @@ export default function App() {
 
                 {activeTab === 'dashboard' && (
                 <>
-                  
-
                       {/* DYNAMIC ANALYSIS INTERACTION FORM */}
                       <form onSubmit={runMarketingTool} className="marketing-form-layout">
                         <h3 style={{ color: '#FFD700', marginTop: 0, marginBottom: '20px', fontSize: '1.2rem' }}>
@@ -1887,6 +1907,13 @@ export default function App() {
         />
       )}
 
+      {isUserAdditionModalOpen && (
+        <AddAUserModal
+          onClose={() => setIsUserAdditionModalOpen(false)}
+          onConfirm={handleAddUser}
+        />
+      )}
+
       {/* ────────────────────────────────────────────────────────
           3. ACCOUNT DRILLDOWN DETAIL MODAL INTERFACE WINDOW
           ──────────────────────────────────────────────────────── */}
@@ -1919,7 +1946,7 @@ export default function App() {
 
             {/* ACTION FRAME: PLACEHOLDER BLANK FUNCTION BUTTONS */}
             <div className="modal-actions-area">
-              <button className="modal-blank-btn execution-accent" onClick={() => console.log('Action 1 triggered for:', selectedAccount.account_id)}>
+              <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
                 {t.add_a_user}
               </button>
               <button className="modal-blank-btn danger-accent" onClick={() => setIsConfirmationModalOpen(true)}>
@@ -1952,20 +1979,57 @@ export default function App() {
                       </div>
                     </div>
                   ))}
-                  <div className="modal-actions-area">
-                    <button className="modal-blank-btn execution-accent" onClick={() => console.log('Action 1 triggered for:', selectedAccount.account_id)}>
-                      {t.changeARole}
-                    </button>
-                    <button className="modal-blank-btn danger-accent" onClick={() => setIsConfirmationModalOpen(true)}>
-                      {t.deleteUser}
-                    </button>
-                  </div>
                 </div>
-                
               )}
           </div>
         </div>
       )}
+
+      {selectedUser && (
+          <div className="modal-wrapper-overlay" onClick={() => setSelectedUser(null)}>
+          {/* Prevent inner layout click operations from firing parent dismiss listener */}
+          <div className="account-detail-modal" onClick={(e) => e.stopPropagation()}>
+            
+            <button className="modal-close-cross" onClick={() => setSelectedUser(null)}>✕</button>
+            
+            <div className="modal-header-block">
+              <span className="modal-large-avatar">🏢</span>
+              <div>
+                <h3 className="modal-account-title">{selectedUser.display_name || 'Unnamed Account'}</h3>
+                <span className="modal-account-subtitle">Infrastructure Identity Scope</span>
+              </div>
+            </div>
+
+            {/* Profile Variables Breakdown Table/List */}
+            <div className="modal-body-fields">
+              <div className="data-field-row">
+                <span className="field-label">Account Identifier (ID):</span>
+                <span className="field-value highlight-string">{selectedUser.user_id}</span>
+              </div>
+              <div className="data-field-row">
+                <span className="field-label">Assigned Profile Scope Role:</span>
+                <span className="field-value">{selectedUser.role || 'Member'}</span>
+              </div>
+            </div>
+
+            {/* ACTION FRAME: PLACEHOLDER BLANK FUNCTION BUTTONS */}
+            <div className="modal-actions-area">
+              <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
+                {t.changeARole}
+              </button>
+              <button className="modal-blank-btn danger-accent" onClick={() => setIsConfirmationModalOpen(true)}>
+                {t.deleteAccount}
+              </button>
+            </div>
+            <p style={{ height: '1rem'}}></p>
+            <hr className='horizontalLineStyle'/>
+            <p style={{ height: '1rem'}}></p>
+            
+          </div>
+        </div>
+      )}
+
+
 
       <footer className="footer-bar">
         <div className="footer-meta">{t.footerRights}</div>
