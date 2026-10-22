@@ -1,6 +1,7 @@
 export type LangCode = 'RU' | 'EN';
 
 export interface LocaleTokens {
+    empty_users_list: string;
     deleteUser: string;
     changeARole: string;
     account_creation: string;
@@ -84,7 +85,8 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     add_a_user: "Добавить пользователя",
     account_creation: "Создание аккаунта",
     deleteUser: "Удалить пользователя",
-    changeARole: "Сменить роль пользователя"
+    changeARole: "Сменить роль пользователя",
+    empty_users_list: "Нет зарегестрированых пользователей"
   },
   EN: {
     WelcomeName: 'Welcome',
@@ -126,6 +128,7 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     add_a_user: "Add a user",
     account_creation: "Create an account",
     deleteUser: "Delete user",
-    changeARole: "Change a role"
+    changeARole: "Change a role",
+    empty_users_list: "No verified users detected for this profile key sequence."
   }
 };

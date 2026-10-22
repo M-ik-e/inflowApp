@@ -203,7 +203,7 @@ export default function App() {
         const data = await response.json();
         // Adjust array assignments target based on your precise backend nested data response keys
         setAccounts(data.accounts || data);
-        console.log("Fetched accounts:", data.accounts || data);
+        //console.log("Fetched accounts:", data.accounts || data);
         localStorage.setItem('account_id', accounts.length > 0 ? accounts[0].account_id : '[]');
       } catch (err: any) {
         setApiError(err.message || 'An unexpected connection error occurred.');
@@ -286,7 +286,7 @@ export default function App() {
         const data = await response.json();
         // Adjust array assignments target based on your precise backend nested data response keys
         setUsers(data.accounts || data);
-        console.log("Fetched accounts:", data.accounts || data);
+        //console.log("Fetched accounts:", data.accounts || data);
         
       } catch (err: any) {
         setApiError(err.message || 'An unexpected connection error occurred.');
@@ -360,9 +360,9 @@ export default function App() {
 
   // 2. Automatically clean up or update localStorage when state changes
   useEffect(() => {
-    console.log('Token useeffect triggered. Current token:', token);
+    //console.log('Token useeffect triggered. Current token:', token);
     if (token) {
-      console.log('Current token:', token);
+      //console.log('Current token:', token);
       localStorage.setItem('authtoken', token);
     } else {
       localStorage.removeItem('authtoken');
@@ -370,9 +370,9 @@ export default function App() {
   }, [token]);
 
   useEffect(() => {
-    console.log('User useeffect triggered. Current user:', user);
+    //console.log('User useeffect triggered. Current user:', user);
     if (user) {
-      console.log('Current user:', user);
+      //console.log('Current user:', user);
       localStorage.setItem('authuser', JSON.stringify(user));
     } else {
       localStorage.removeItem('authuser');
@@ -415,7 +415,7 @@ export default function App() {
       
       // 4. Securely store the token for subsequent API requests
       localStorage.setItem('authToken', loginData.access_token);
-      console.log('Bearer now: ', loginData.access_token);
+      //console.log('Bearer now: ', loginData.access_token);
       // 2. SECOND CALL: GET request with API Key AND Bearer Token
       const dataResponse = await fetch('/api/v1/me', {
         method: 'GET',
@@ -683,7 +683,7 @@ export default function App() {
       creative_id: trackingLinkCreativeID
     };
 
-    console.log("account_id", localStorage.getItem('account_id'));
+    //console.log("account_id", localStorage.getItem('account_id'));
 
     try {
       const response = await fetch(`/api/v1/tracking/links`, {
@@ -906,7 +906,7 @@ export default function App() {
     setApiLoading(true);
     setApiError(null);
     setApiSuccessData(null);
-    console.log('Account deletion triggered');
+    //console.log('Account deletion triggered');
     try {
       const response = await fetch(`/api/v1/accounts`, {
         method: 'DELETE',
@@ -1100,7 +1100,7 @@ export default function App() {
         const accountId = selectedAccountId;
     
         const queryParams = new URLSearchParams();
-        console.log("account fetched is", accountId);
+        //console.log("account fetched is", accountId);
         const appendIfValid = (key: string, value: string | undefined | null) => {
             if (value && value.trim() !== '') {
             queryParams.append(key, value);
@@ -1152,8 +1152,8 @@ export default function App() {
 
         const accountId = localStorage.getItem('account_id') || ''; // Default to first account if available
         const token = localStorage.getItem('authToken');
-        console.log("accountid is:", accountId);
-        console.log("token is:", token);
+        //console.log("accountid is:", accountId);
+        //console.log("token is:", token);
         
         // Construct the target query criteria parameters matching string inputs exactly
         const queryParams = new URLSearchParams();
@@ -1932,12 +1932,8 @@ export default function App() {
             
             {users.length === 0 ? (
                 <div className="activity-feed">
-                  <p style={{ margin: 0, color: '#ccc' }}>No verified users detected for this profile key sequence.</p>
-                    <button 
-                      className="marketing-submit-btn" 
-                      onClick={() => setIsUserAdditionModalOpen(true)}>
-                        {t.account_creation}
-                    </button>
+                  <p style={{ margin: 0, color: '#ccc' }}>{t.empty_users_list}</p>
+                    
                 </div>
               ) : (
                 <div className="accounts-grid-layout">
