@@ -13,6 +13,8 @@ import PasswordChangeModal from './modal_pswd';
 import AccountCreateModal from './modal_account_creation';
 import ConfirmationModal from './confirmationModal';
 import AddAUserModal from './add_a_user_modal';
+import ChangeUserRoleModal from './user_change_role_modal';
+import hasAccess from './auth_roles'
 
 // Define the structure for each rendered image
 interface DistributedImage {
@@ -52,12 +54,8 @@ const IMAGE_URLS = [
   empt_lemon,
 ];
 
-export const [currentLang, setCurrentLang] = useState<LangCode>('RU');
-export const t = dictionary[currentLang];
 
 export default function App() {
-
-  type AccessLevel = 1 | 2 | 3 | 4;
 
   type ViewMode = 'home' | 'cabinet';
   const [currentView, setCurrentView] = useState<ViewMode>('home');
@@ -76,14 +74,11 @@ export default function App() {
     setSelectedAccountId(event.target.value);
   };
 
-  const [accessGrantedLevel, setAccessGrantedLevel] = useState(-1);
+  const [currentUserRole, setCurrentUserRole] = useState('readonly');
 
-  const handleAccessLevel = () => {
-    if(!user){return;
-//MARK:: todo access level
-    } //else if(user.)
-
-  }
+  const [currentLang, setCurrentLang] = useState<LangCode>('RU');
+  const t = dictionary[currentLang];
+  
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -100,9 +95,18 @@ export default function App() {
   const [newPassword, setNewPassword] = useState<string>('');
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
+  const [isUserChangeRoleModalOpen, setIsUserChangeRoleModalOpen] = useState(false);
+
   const [isAccountCreationModalOpen, setIsAccountCreationModalOpen] = useState(false);
 
   const [isUserAdditionModalOpen, setIsUserAdditionModalOpen] = useState(false);
+
+  const handleChangeUserRole = (confirmation :boolean, user_role: string) =>{
+    console.log("HandleChangeroll func");
+    setClickSourceForModal('change_role');
+    setUserRole(user_role);
+    handleConfirmationProcess(confirmation);
+  }
 
   const handleAddUser = (userEmail: string, userName: string, userPassword: string, userRole: string) => {
     setUserEmail(userEmail);
@@ -110,7 +114,7 @@ export default function App() {
     setUserPassword(userPassword);
     setUserRole(userRole);
     accountUsers('add');
-  }; //MARK:: TODO
+  }; 
 
   const handlePasswordSubmit = (oldPass: string, newPass: string) => {
     setCurrentPassword(oldPass);
@@ -124,17 +128,22 @@ export default function App() {
   }
 
   useEffect(() => {
+    console.log("confirmation hit now: ", confirmationHit);
     if(!confirmationHit)return;
+    console.log("Confirmation hit detected");
 
     if(clickSourceForModal === 'accountDeletion'){
           deleteAccount();
       }else if(clickSourceForModal === 'deleteUser'){
           accountUsers('disable');
+      }else if(clickSourceForModal === 'change_role'){
+          accountUsers('change_role');
       }
 
   }, [confirmationHit]);
     
   const handleConfirmationProcess = (confirmation: boolean) =>{
+    console.log("handleConfirmationProcess func");
     setConfirmationHit(confirmation);  
   }
 
@@ -298,6 +307,7 @@ export default function App() {
   const [isUserDisabled, setIsUserDisabled] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [method, setMethod] = useState<string>(''); //out of the scope
+  
 
   const accountUsers = async (functioncase: string) => {
       setApiLoading(true);
@@ -305,6 +315,8 @@ export default function App() {
 
       setSelectedUserId(selectedUser?.user_id || 'no id');
       setSelectedAccountId(selectedAccount?.account_id || '');
+
+      let querry = '/api/v1/users';
 
       const token = localStorage.getItem('authToken');
 
@@ -346,7 +358,7 @@ export default function App() {
         appendIfValid('user_id', selectedUserId);
         custHeaders.append('user_id', selectedUserId);
         payload.role = userRole;
-        payload.disabled = isUserDisabled;
+        payload.disabled = true;
       
       }else if(functioncase === 'disable'){
         console.log("We are at delete function, selected user is", selectedUser);
@@ -356,12 +368,13 @@ export default function App() {
         custHeaders.append('user_id', selectedUserId);
       }
   
+      console.log("requst sent with request", querry);
       console.log("requst sent with accountid", selectedAccountId);
       console.log("requst sent with userId", selectedUserId);
       console.log("requst sent with token", token);
       console.log("requst sent with payload", payload);
         try {
-          const response = await fetch(`/api/v1/users?${queryParams.toString()}`, {
+          const response = await fetch(querry, {
           method: method,
           headers: custHeaders,
           ...(method === 'POST' || method === 'PATCH' ? { body: JSON.stringify(payload) } : {})
@@ -376,6 +389,7 @@ export default function App() {
         setUsers(data.users || data);
         //console.log("Fetched accounts:", data.accounts || data);
         setIsUserAdditionModalOpen(false);
+        setIsUserChangeRoleModalOpen(false);
         
       } catch (err: any) {
         setApiError(err.message || 'An unexpected connection error occurred.');
@@ -528,6 +542,7 @@ export default function App() {
 
       setAuthWindowActive(false); // Close the auth window on success
       setCurrentView('cabinet');
+      setActiveTab('dashboard');
 
       fetchAccounts(); // Optional: fetch account ID immediately after login
     } catch (err: any) {
@@ -536,6 +551,48 @@ export default function App() {
       setApiLoading(false);
     }
   };
+
+  useEffect (() =>{
+    if(!user && !accounts) return;
+
+    const fetchSignedUsreRole = async () => {
+
+      setApiLoading(true);
+      setApiError(null);
+      setApiSuccessData(null);
+      
+      // 1. Retrieve the active token from storage
+      const token = localStorage.getItem('authToken');
+      const userID = user?.id;
+
+      try {
+        // 2. Alert the backend to revoke/blacklist the token
+        const response = await fetch(`/api/v1/users/${userID}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Account-Id': accounts[0].account_id
+          }
+        });
+
+        if (!response.ok) {
+          console.warn(`Server logout returned status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        localStorage.setItem("signed_user_role", (responseData.role || response));
+        setCurrentUserRole((responseData.role || response));
+      } catch (err: any) {
+        setApiError(err.message || 'An error occurred.');
+      } finally {
+        setApiLoading(false);
+      }
+    };
+
+    fetchSignedUsreRole();
+
+  }, [user, accounts]);
 
   const handleLogout = async () => {
     // 1. Retrieve the active token from storage
@@ -774,15 +831,13 @@ export default function App() {
       creative_id: trackingLinkCreativeID
     };
 
-    //console.log("account_id", localStorage.getItem('account_id'));
-
     try {
       const response = await fetch(`/api/v1/tracking/links`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         },
         body: JSON.stringify(payload)
       });
@@ -863,7 +918,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         },
         body: JSON.stringify(payload)
       });
@@ -898,7 +953,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         }
       });
       if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
@@ -943,7 +998,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         },
         body: JSON.stringify(payload)
       });
@@ -991,8 +1046,7 @@ export default function App() {
   }
 
   //MARK: delete account func and var
-  const [accountToDelete, setAccountToDelete] = useState<string>(localStorage.getItem('account_id') || '')
-
+  
   const deleteAccount = async () => {
     setApiLoading(true);
     setApiError(null);
@@ -1004,7 +1058,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': accountToDelete
+          'X-Account-Id': selectedAccountId
         }
       });
       if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
@@ -1015,6 +1069,8 @@ export default function App() {
       setApiError(err.message || 'An error occurred.');
     } finally {
       setApiLoading(false);
+      setConfirmationHit(false);
+
     }
   }
 
@@ -1023,11 +1079,10 @@ export default function App() {
 
 
   //MARK: addaPersonToTheAccount fAv
-  const [addAPersonEmail, setaddAPersonEmail] = useState<string>('')
-  const [addAPersonRole, setaddAPersonRole] = useState<string>('')
-  const [addAPersonPassword, setaddAPersonPassword] = useState<string>('')
-  const [addAPersonDisplayName, setaddAPersonDisplayName] = useState<string>('')
-  const [addAPersonAccountToChoose, setaddAPersonAccountToChoose] = useState<string>(localStorage.getItem('account_id') || '')
+  const [addAPersonEmail, setaddAPersonEmail] = useState<string>('');
+  const [addAPersonRole, setaddAPersonRole] = useState<string>('');
+  const [addAPersonPassword, setaddAPersonPassword] = useState<string>('');
+  const [addAPersonDisplayName, setaddAPersonDisplayName] = useState<string>('');
 
   const addaPersonToTheAccount = async () => {
     setApiLoading(true);
@@ -1047,7 +1102,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': addAPersonAccountToChoose
+          'X-Account-Id': selectedAccountId
         },
         body: JSON.stringify(payload)
       });
@@ -1072,7 +1127,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         }
       });
       if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
@@ -1105,7 +1160,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         },
         body: JSON.stringify(payload)
       });
@@ -1130,7 +1185,7 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'X-Account-Id': localStorage.getItem('account_id') || ''
+          'X-Account-Id': selectedAccountId
         }
       });
       if (!response.ok) throw new Error(`Status code returned: ${response.status}`);
@@ -1441,10 +1496,12 @@ export default function App() {
                   onClick={() => handleTabChange('dashboard')}>
                   📊 {t.dashBoardOverview}
                 </button>
-                <button className={`sidebar-link ${activeTab === 'tools' ? 'active' : ''}`}
-                  onClick={() => handleTabChange('tools')}>
-                  💼 {t.tools}
-                </button>
+                {hasAccess(currentUserRole, 'analyst') && (  
+                  <button className={`sidebar-link ${activeTab === 'tools' ? 'active' : ''}`}
+                    onClick={() => handleTabChange('tools')}>
+                    💼 {t.tools}
+                  </button>
+                )}
                 <button className={`sidebar-link ${activeTab === 'settings' ? 'active' : ''}`}
                   onClick={() => handleTabChange('settings')}>
                   ⚙️ {t.settings}
@@ -1607,14 +1664,16 @@ export default function App() {
                         onClick={() => setActiveSubTab('profile')}>
                         📊 {t.profile}
                       </button>
-                      <button className={`subtab-btn ${activeSubTab === 'accounts' ? 'active' : ''}`}
-                        onClick={() => setActiveSubTab('accounts')}>
-                        💼 {t.accounts}
-                      </button>
-                      <button className={`subtab-btn ${activeSubTab === 'users' ? 'active' : ''}`}
+                      {hasAccess(currentUserRole, 'admin') && (
+                        <button className={`subtab-btn ${activeSubTab === 'accounts' ? 'active' : ''}`}
+                          onClick={() => setActiveSubTab('accounts')}>
+                          💼 {t.accounts}
+                        </button>
+                      )}
+                      {/* <button className={`subtab-btn ${activeSubTab === 'users' ? 'active' : ''}`}
                         onClick={() => setActiveSubTab('users')}>
                         ⚙️ {t.users}
-                      </button>
+                      </button> */}
                         {activeSubTab === 'profile' && (
                           <>
                           <hr className='horizontalLineStyle' />
@@ -1651,25 +1710,25 @@ export default function App() {
                         
                         {activeSubTab === 'accounts' && (
                           <>
+                            <p className='spacer'></p>
                             <div className="panel-header">
-                              <h2 className="panel-title">Active Accounts Infrastructure</h2>
-                              <span className="status-badge">Profiles Found: {accounts.length}</span>
+                              <h2 className="panel-title">{t.active_accounts_infrastructure}</h2>
                             </div>
 
-                            {apiLoading && <p style={{ color: '#FFD700' }}>Syncing secure account access registries...</p>}
+                            {apiLoading && <p style={{ color: '#FFD700' }}>{t.syncing_secure_account_access_registries}</p>}
                             {apiError && <div className="activity-feed error-alert"><p style={{ margin: 0 }}>⚠️ {apiError}</p></div>}
 
                             {!apiLoading && !apiError && (
                               <div className="accounts-list-container">
-                                <p style={{ color: '#aaa', margin: '0 0 5px 0' }}>Select or review credentials configurations associated with your core user scope:</p>
+                                <p style={{ color: '#aaa', margin: '0 0 5px 0' }}>{t.select_or_review_credentials_configurations_associated_with_your_core_user_scope}</p>
                                 
                                 {accounts.length === 0 ? (
                                   <div className="activity-feed">
-                                    <p style={{ margin: 0, color: '#ccc' }}>No verified accounts detected for this profile key sequence.</p>
+                                    <p style={{ margin: 0, color: '#ccc' }}>{t.no_verified_accounts_detected_for_this_profile}</p>
                                       <button 
                                         className="marketing-submit-btn" 
                                         onClick={() => setIsAccountCreationModalOpen(true)}>
-                                        🔑 {t.changePassword}
+                                        {t.createAccount}
                                       </button>
                                   </div>
                                 ) : (
@@ -1685,7 +1744,7 @@ export default function App() {
                                           </div>
                                         </div>
                                         <div className="account-card-meta">
-                                          <span className="account-role-tag">Role: {acc.role || 'Member'}</span>
+                                          <span className="account-role-tag">{t.role} {acc.role || 'Member'}</span>
                                         </div>
                                       </div>
                                     ))}
@@ -1719,7 +1778,7 @@ export default function App() {
                         >
                           {/* If the array is empty, give a clean fallback state */}
                           {accounts.length === 0 && (
-                            <option value="">No options available</option>
+                            <option value="">{t.no_option_available}</option>
                           )}
 
                           {/* ✨ THE MAGIC LOOP: Automatically loops through any quantity of elements */}
@@ -1733,11 +1792,11 @@ export default function App() {
                         {/* DATE CAPTURING ROW */}
                         <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>Start Date</label>
+                            <label>{t.start_date}</label>
                             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
                           </div>
                           <div className="form-input-block">
-                            <label>End Date</label>
+                            <label>{t.end_date}</label>
                             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
                           </div>
                         </div>
@@ -1745,20 +1804,20 @@ export default function App() {
                         {/* ENUM SELECTION FIELDS ROW */}
                         <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>Attribution Model Type</label>
+                            <label>{t.attribution_model_type}</label>
                             <select value={attributionModel} onChange={(e) => setAttributionModel(e.target.value)}>
-                              <option value="last_click">Last Click </option>
-                              <option value="first_touch">First Touch</option>
+                              <option value="last_click">{t.last_click} </option>
+                              <option value="first_touch">{t.first_touch}</option>
                             </select>
                           </div>
 
                           <div className="form-input-block">
-                            <label>Window Days Tracking</label>
+                            <label>{t.window_days_tracking}</label>
                             <select value={windowDays} onChange={(e) => setWindowDays(Number(e.target.value))}>
-                              <option value={1}>1 Day</option>
-                              <option value={7}>7 Days </option>
-                              <option value={14}>14 Days</option>
-                              <option value={30}>30 Days</option>
+                              <option value={1}>{t.one_Day}</option>
+                              <option value={7}>{t.seven_Days} </option>
+                              <option value={14}>{t.fourteen_Days}</option>
+                              <option value={30}>{t.thirty_Days}</option>
                             </select>
                           </div>
                         </div>
@@ -1767,18 +1826,18 @@ export default function App() {
                         <div className="form-group-row flex-align-center">
                           <label className="checkbox-container">
                             <input type="checkbox" checked={isNewUser} onChange={(e) => setIsNewUser(e.target.checked)} />
-                            <span className="checkbox-label">Is New User Profile</span>
+                            <span className="checkbox-label">{t.is_new_user_profile}</span>
                           </label>
                         </div>
 
                         {/* Event Source and Name */}
                         <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>Source Name</label>
+                            <label>{t.source_name}</label>
                             <input type="text" maxLength={255} value={SourceName} onChange={(e) => setSourceName(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>Event Name</label>
+                            <label>{t.event_name}</label>
                             <input type="text" maxLength={255} value={EventName} onChange={(e) => setEventName(e.target.value)}  />
                           </div>
                         </div>
@@ -1787,11 +1846,11 @@ export default function App() {
                         {/* TEXT KEY STRINGS - ROW 1 */}
                         <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>Target Event 1</label>
+                            <label>{t.target_event_1}</label>
                             <input type="text" maxLength={255} value={targetEvent1} onChange={(e) => setTargetEvent1(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>Target Event 2</label>
+                            <label>{t.target_event_2}</label>
                             <input type="text" maxLength={255} value={targetEvent2} onChange={(e) => setTargetEvent2(e.target.value)}  />
                           </div>
                         </div>
@@ -1799,36 +1858,36 @@ export default function App() {
                         {/* TEXT KEY STRINGS - ROW 2 */}
                         <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>Dimension Key</label>
+                            <label>{t.dimension_key}</label>
                             <input type="text" maxLength={255} value={dimensionKey} onChange={(e) => setDimensionKey(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>Dimension Value</label>
+                            <label>{t.dimension_value}</label>
                             <input type="text" maxLength={255} value={dimensionValue} onChange={(e) => setDimensionValue(e.target.value)}  />
                           </div>
                         </div>
 
                         {/* SUBMISSION ACTIVATION TRIGGER */}
                         <button type="submit" disabled={apiLoading} className="marketing-submit-btn" onClick={() => setActionType('Icrementality')}>
-                          {apiLoading ? 'Analyzing Incrementality Metrics...' : 'Run Incr analisys'}
+                          {apiLoading ? t.loading : t.run_incremental_analysys}
                         </button>
                         <button type="submit" disabled={apiLoading} className="marketing-submit-btn" onClick={() => setActionType('Uplift')}>
-                          {apiLoading ? 'Analyzing Incrementality Metrics...' : 'Run uplift analisys'}
+                          {apiLoading ? t.loading : t.run_uplift_analysys}
                         </button>
                         <button type="submit" disabled={apiLoading} className="marketing-submit-btn" onClick={() => setActionType('Cohort')}>
-                          {apiLoading ? 'Analyzing Incrementality Metrics...' : 'run '}
+                          {apiLoading ? t.loading : t.run_cohort_analysys}
                         </button>
                         <button type="submit" disabled={apiLoading} className="marketing-submit-btn" onClick={() => setActionType('EventNames')}>
-                          {apiLoading ? 'Analyzing Incrementality Metrics...' : 'run run run'}
+                          {apiLoading ? t.loading : t.retrive_event_names}
                         </button>
                       </form>
 
                       {/* API PROCESSING OUTPUT VIEWS */}
-                      {apiError && <div className="activity-feed error-alert"><p style={{ margin: 0 }}>⚠️ Execution Failed: {apiError}</p></div>}
+                      {apiError && <div className="activity-feed error-alert"><p style={{ margin: 0 }}>⚠️ {t.execution_failed} {apiError}</p></div>}
                 
                       {apiSuccessData && (
                         <div className="activity-feed success-alert">
-                          <h4 style={{ margin: '0 0 10px 0', color: '#FFD700' }}>✅ Function Execution Complete:</h4>
+                          <h4 style={{ margin: '0 0 10px 0', color: '#FFD700' }}>✅ {t.execution_complete} </h4>
                           <pre style={{ margin: 0, overflowX: 'auto', fontSize: '0.85rem' }}>{JSON.stringify(apiSuccessData, null, 2)}</pre>
                         </div>
                       )}
@@ -1925,7 +1984,8 @@ export default function App() {
 
       
       {/* MARK: API RESULT MODAL INTERFACE WINDOW*/}
-      <ApiResultModal 
+      <ApiResultModal
+        current_Lang = {currentLang} 
         apiError={apiError} 
         apiSuccessData={apiSuccessData} 
         onClose={handleCloseModal} 
@@ -1933,7 +1993,8 @@ export default function App() {
 
       {/* Conditionally mounting our newly decoupled file view */}
       {isPasswordModalOpen && (
-        <PasswordChangeModal 
+        <PasswordChangeModal
+          current_Lang = {currentLang} 
           onClose={() => setIsPasswordModalOpen(false)} 
           onConfirm={handlePasswordSubmit} 
         />
@@ -1948,6 +2009,7 @@ export default function App() {
 
       {isConfirmationModalOpen && (
         <ConfirmationModal
+          current_Lang = {currentLang}
           clickSource = {clickSourceForModal}
           onClose={() => setIsConfirmationModalOpen(false)}
           onConfirm={handleConfirmationProcess}
@@ -1956,8 +2018,19 @@ export default function App() {
 
       {isUserAdditionModalOpen && (
         <AddAUserModal
+          executionerRole={currentUserRole}
+          current_Lang = {currentLang}
           onClose={() => setIsUserAdditionModalOpen(false)}
           onConfirm={handleAddUser}
+        />
+      )}
+
+      {isUserChangeRoleModalOpen && (
+        <ChangeUserRoleModal
+          executionerRole={currentUserRole}
+          current_Lang = {currentLang}
+          onClose={() => setIsUserChangeRoleModalOpen(false)}
+          onConfirm={handleChangeUserRole}
         />
       )}
 
@@ -1975,36 +2048,40 @@ export default function App() {
               <span className="modal-large-avatar">🏢</span>
               <div>
                 <h3 className="modal-account-title">{selectedAccount.company_name || 'Unnamed Account'}</h3>
-                <span className="modal-account-subtitle">Infrastructure Identity Scope</span>
+                {/*MARK:: maybe? <span className="modal-account-subtitle">Infrastructure Identity Scope</span> */}
               </div>
             </div>
 
             {/* Profile Variables Breakdown Table/List */}
             <div className="modal-body-fields">
               <div className="data-field-row">
-                <span className="field-label">Account Identifier (ID):</span>
+                <span className="field-label">{t.account_identifier} (ID):</span>
                 <span className="field-value highlight-string">{selectedAccount.account_id}</span>
               </div>
               <div className="data-field-row">
-                <span className="field-label">Assigned Profile Scope Role:</span>
+                <span className="field-label">{t.assigned_profile_scope_role}</span>
                 <span className="field-value">{selectedAccount.role || 'Member'}</span>
               </div>
             </div>
 
             {/* ACTION FRAME: PLACEHOLDER BLANK FUNCTION BUTTONS */}
             <div className="modal-actions-area">
-              <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
-                {t.add_a_user}
-              </button>
-              <button className="modal-blank-btn danger-accent" onClick={() => {setClickSourceForModal('deleteAccount'); setIsConfirmationModalOpen(true)}}>
-                {t.deleteAccount}
-              </button>
+              {hasAccess(currentUserRole, 'admin')&&(
+                <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
+                  {t.add_a_user}
+                </button>
+              )}
+              {hasAccess(currentUserRole, 'owner')&&(
+                <button className="modal-blank-btn danger-accent" onClick={() => {setClickSourceForModal('deleteAccount'); setIsConfirmationModalOpen(true)}}>
+                  {t.deleteAccount}
+                </button>
+              )}
             </div>
             <p style={{ height: '1rem'}}></p>
             <hr className='horizontalLineStyle'/>
             <p style={{ height: '1rem'}}></p>
             
-            {apiLoading && <p style={{ color: '#FFD700' }}>Syncing secure account access registries...</p>}
+            {apiLoading && <p style={{ color: '#FFD700' }}>{t.loading}</p>}
             {apiError && <div className="activity-feed error-alert"><p style={{ margin: 0 }}>⚠️ {apiError}</p></div>}
             
             {!apiLoading && !apiError &&(
@@ -2051,25 +2128,25 @@ export default function App() {
               <span className="modal-large-avatar">🏢</span>
               <div>
                 <h3 className="modal-account-title">{selectedUser.display_name || 'Unnamed Account'}</h3>
-                <span className="modal-account-subtitle">Infrastructure Identity Scope</span>
+                {/* <span className="modal-account-subtitle">Infrastructure Identity Scope</span> */}
               </div>
             </div>
 
             {/* Profile Variables Breakdown Table/List */}
             <div className="modal-body-fields">
               <div className="data-field-row">
-                <span className="field-label">Account Identifier (ID):</span>
+                <span className="field-label">{t.userID}</span>
                 <span className="field-value highlight-string">{selectedUser.user_id}</span>
               </div>
               <div className="data-field-row">
-                <span className="field-label">Assigned Profile Scope Role:</span>
+                <span className="field-label">{t.userRole}</span>
                 <span className="field-value">{selectedUser.role || 'Member'}</span>
               </div>
             </div>
 
             {/* ACTION FRAME: PLACEHOLDER BLANK FUNCTION BUTTONS */}
             <div className="modal-actions-area">
-              <button className="modal-blank-btn execution-accent" onClick={() => setIsUserAdditionModalOpen(true)}>
+              <button className="modal-blank-btn execution-accent" onClick={() => setIsUserChangeRoleModalOpen(true)}>
                 {t.changeARole}
               </button>
               <button className="modal-blank-btn danger-accent" onClick={() =>{setClickSourceForModal('deleteUser'); setIsConfirmationModalOpen(true)}}>

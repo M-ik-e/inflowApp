@@ -1,14 +1,19 @@
 import { useState } from 'react';
+import { dictionary, type LangCode } from './translations';
 
 interface ApiModalProps {
+  current_Lang: LangCode;
   apiError: string | null;
   apiSuccessData: any; // Replace 'any' with your actual API type if available
   onClose: () => void;
 }
 
-export default function ApiResultModal({ apiError, apiSuccessData, onClose }: ApiModalProps) {
+export default function ApiResultModal({current_Lang, apiError, apiSuccessData, onClose }: ApiModalProps) {
+  
   // If there is no data and no error, do not render the modal at all
   if (!apiError && !apiSuccessData) return null;
+      
+  const t = dictionary[current_Lang];
 
   return (
     /* 1. Modal Overlay Backdrop */

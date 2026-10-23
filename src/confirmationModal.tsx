@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
+import { dictionary, type LangCode } from './translations';
 
 // Define explicit types for the component's interactive handlers
 interface ConfirmationModalProps {
+    current_Lang: LangCode;
     clickSource: string;
     onClose: () => void;
     onConfirm: (confirmation: boolean) => void;
 }
 
-export default function ConfirmationModal({onClose, onConfirm }: ConfirmationModalProps) {
+export default function ConfirmationModal({current_Lang, onClose, onConfirm }: ConfirmationModalProps) {
+    
+    const t = dictionary[current_Lang];
+    
     const [confirmation, setConfirmation] = useState<boolean>(false);
-
 
     const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
@@ -23,7 +27,7 @@ export default function ConfirmationModal({onClose, onConfirm }: ConfirmationMod
         <div className="modal-window-card" onClick={(e) => e.stopPropagation()}>
             
             <div className="modal-header-row">
-            <span className="modal-title-text">Confirmation Required</span>
+            <span className="modal-title-text">{t.confirmation_required}</span>
             <button type="button" className="btn-close-modal" onClick={onClose}>
                 &times;
             </button>
@@ -31,16 +35,16 @@ export default function ConfirmationModal({onClose, onConfirm }: ConfirmationMod
             
             <form className="modalForm" onSubmit={handleSubmit}>
             <h3 className="modal-title-text">
-                Please confirm action
+                {t.please_confirm_action}
             </h3>
             
             <div className="modal-footer" style={{ marginTop: '8px' }}>
                 <div className='metrics-grid'>
                     <button type="button" className="marketing-submit-btn" onClick={onClose}>
-                        Cancel
+                        {t.cancel}
                     </button>
                     <button type="submit" className="marketing-submit-btn">
-                        Confirm
+                        {t.confirm}
                     </button>
                 </div>
             </div>

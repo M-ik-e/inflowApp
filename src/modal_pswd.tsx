@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
+import { dictionary, type LangCode } from './translations';
 
 // Define explicit types for the component's interactive handlers
 interface PasswordModalProps {
+  current_Lang: LangCode
   onClose: () => void;
   onConfirm: (oldPass: string, newPass: string) => void;
 }
 
-export default function PasswordChangeModal({ onClose, onConfirm }: PasswordModalProps) {
+export default function PasswordChangeModal({current_Lang, onClose, onConfirm }: PasswordModalProps) {
+  
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+      
+  const t = dictionary[current_Lang];
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();

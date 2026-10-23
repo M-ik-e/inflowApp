@@ -1,6 +1,50 @@
 export type LangCode = 'RU' | 'EN';
 
 export interface LocaleTokens {
+    profiles_found: string;
+    one_Day: string;
+    seven_Days: string;
+    fourteen_Days: string;
+    thirty_Days: string;
+    select_or_review_credentials_configurations_associated_with_your_core_user_scope: string;
+    no_verified_accounts_detected_for_this_profile: string;
+    createAccount: string;
+    role: string;
+    no_option_available: string;
+    start_date: string;
+    end_date: string;
+    attribution_model_type: string;
+    last_click: string;
+    first_touch: string;
+    window_days_tracking: string;
+    is_new_user_profile: string;
+    source_name: string;
+    event_name: string;
+    target_event_1: string;
+    target_event_2: string;
+    dimension_key: string;
+    dimension_value: string;
+    loading: string;
+    run_incremental_analysys: string;
+    run_uplift_analysys: string;
+    run_cohort_analysys: string;
+    retrive_event_names: string;
+    execution_failed: string;
+    execution_complete: string;
+    account_identifier: string;
+    assigned_profile_scope_role: string;
+    userID: string;
+    userRole: string;
+    active_accounts_infrastructure: string;
+    syncing_secure_account_access_registries: string;
+    confirmation_required: string;
+    please_confirm_action: string;
+    cancel: string;
+    confirm: string;
+    role_owner: string;
+    role_admin: string;
+    role_analyst: string;
+    role_readonly: string;
     empty_users_list: string;
     deleteUser: string;
     changeARole: string;
@@ -86,7 +130,51 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     account_creation: "Создание аккаунта",
     deleteUser: "Удалить пользователя",
     changeARole: "Сменить роль пользователя",
-    empty_users_list: "Нет зарегестрированых пользователей"
+    empty_users_list: "Нет зарегестрированых пользователей",
+    role_owner: "Владелец",
+    role_admin: "Администратор",
+    role_analyst: "Аналитик",
+    role_readonly: "Только чтение",
+    confirmation_required: "Требуется подтверждение",
+    please_confirm_action: "Пожалуйста, подтвердите действие",
+    cancel: "Отмена",
+    confirm: "Подвердить",
+    one_Day: "1 День",
+    seven_Days: "2 Дня",
+    fourteen_Days: "14 Дней",
+    thirty_Days: "30 Дней",
+    select_or_review_credentials_configurations_associated_with_your_core_user_scope: "Выберите аккаунт:",
+    no_verified_accounts_detected_for_this_profile: "Аккаунт не найден",
+    createAccount: "Создать аккаунт",
+    role: "Роль",
+    no_option_available: "Нет доступных опций",
+    start_date: "Дата начала",
+    end_date: "Дата окончания",
+    attribution_model_type: "Атрибут запроса",
+    last_click: "Последний клик",
+    first_touch: "Первое касание",
+    window_days_tracking: "Окно отслеживания",
+    is_new_user_profile: "Новый пользователь",
+    source_name: "Название Источника",
+    event_name: "Название События",
+    target_event_1: "Целевое событие 1",
+    target_event_2: "Целевое событие 2",
+    dimension_key: "Ключ измерения",
+    dimension_value: "Значение измерения",
+    loading: "Загрузка",
+    run_incremental_analysys: "Инкрементальный анализ",
+    run_uplift_analysys: "Uplift-моделирование",
+    run_cohort_analysys: "Когортный анализ",
+    retrive_event_names: "Получить список событий",
+    execution_failed: "Операция не выполнена",
+    execution_complete: "Операция завершена",
+    account_identifier: "Идентификатор аккаунта (ID):",
+    assigned_profile_scope_role: "Роль",
+    userID: "Идентификатор пользователя (ID):",
+    userRole: "Роль",
+    active_accounts_infrastructure: "Активные аккаунты",
+    syncing_secure_account_access_registries: "Синхронизация...",
+    profiles_found: "Учетных записей найдено: "
   },
   EN: {
     WelcomeName: 'Welcome',
@@ -129,6 +217,50 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     account_creation: "Create an account",
     deleteUser: "Delete user",
     changeARole: "Change a role",
-    empty_users_list: "No verified users detected for this profile key sequence."
+    empty_users_list: "No verified users detected for this profile key sequence.",
+    role_owner: "Owner",
+    role_admin: "Administrator",
+    role_analyst: "Analyst",
+    role_readonly: "Read Only",
+    confirmation_required: "Confirmation Required",
+    please_confirm_action: "Please confirm action",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    one_Day: "1 Day",
+    seven_Days: "7 Days",
+    fourteen_Days: "14 Days",
+    thirty_Days: "30 Days",
+    select_or_review_credentials_configurations_associated_with_your_core_user_scope: "Select or review credentials configurations associated with your core user scope",
+    no_verified_accounts_detected_for_this_profile: "No verified accounts detected for this profile",
+    createAccount: "Create account",
+    role: "Role",
+    no_option_available: "No option available",
+    start_date: "Start Date",
+    end_date: "End Date",
+    attribution_model_type: "Attribution model type",
+    last_click: "Last Click",
+    first_touch: "First Touch",
+    window_days_tracking: "Window days:",
+    is_new_user_profile: "New User",
+    source_name: "Source Name",
+    event_name: "Event Name",
+    target_event_1: "Target Event 1",
+    target_event_2: "Target Event 2",
+    dimension_key: "Dimension Key",
+    dimension_value: "Dimension Value",
+    loading: "Loading...",
+    run_incremental_analysys: "Run Incremental Analysis",
+    run_uplift_analysys: "Run Uplift Analysis",
+    run_cohort_analysys: "Run CoHort Analysis",
+    retrive_event_names: "Retrive Event Names",
+    execution_failed: "Execution Failed",
+    execution_complete: "Execution Complete",
+    account_identifier: "Account Identifier (ID):",
+    assigned_profile_scope_role: "Assigned Profile Scope Role",
+    userID: "User ID:",
+    userRole: "User Role",
+    active_accounts_infrastructure: "Active Accounts Infrastructure",
+    syncing_secure_account_access_registries: "Syncing secure account access registries",
+    profiles_found: "Profiles found: "
   }
 };
