@@ -58,7 +58,7 @@ export default function ApiResultModal({current_Lang, apiError, apiSuccessData, 
           borderBottom: '1px solid #333'
         }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
-            {apiError ? '❌ Execution Failed' : '🚀 Execution Results'}
+            {apiError ? `❌${t.execution_failed}` : `✅${t.execution_complete}` }
           </h3>
           <button 
             onClick={onClose}
@@ -87,7 +87,6 @@ export default function ApiResultModal({current_Lang, apiError, apiSuccessData, 
           {/* Success View Block */}
           {apiSuccessData && (
             <div className="activity-feed success-alert">
-              <h4 style={{ margin: '0 0 10px 0', color: '#FFD700' }}>✅ Function Execution Complete:</h4>
               <pre style={{ 
                 margin: 0, 
                 overflowX: 'auto', 

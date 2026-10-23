@@ -349,14 +349,12 @@ export default function App() {
       }else if(functioncase === 'read_one'){
         setMethod('GET');
         
-        appendIfValid('user_id', selectedUserId);
-        custHeaders.append('user_id', selectedUserId);
+        querry += `/${selectedUserId}`
       
       }else if(functioncase === 'change_role'){
         setMethod('PATCH');
         
-        appendIfValid('user_id', selectedUserId);
-        custHeaders.append('user_id', selectedUserId);
+        querry += `/${selectedUserId}`;
         payload.role = userRole;
         payload.disabled = true;
       
@@ -364,8 +362,7 @@ export default function App() {
         console.log("We are at delete function, selected user is", selectedUser);
         
         setMethod('DELETE');
-        appendIfValid('user_id', selectedUserId);
-        custHeaders.append('user_id', selectedUserId);
+        querry += `/${selectedUserId}`
       }
   
       console.log("requst sent with request", querry);
@@ -390,6 +387,9 @@ export default function App() {
         //console.log("Fetched accounts:", data.accounts || data);
         setIsUserAdditionModalOpen(false);
         setIsUserChangeRoleModalOpen(false);
+        setIsConfirmationModalOpen(false);
+        setSelectedUser(null);
+        setSelectedAccount(null);
         
       } catch (err: any) {
         setApiError(err.message || 'An unexpected connection error occurred.');
@@ -484,7 +484,7 @@ export default function App() {
   }, [user]);
 
   const handleFormSubmission = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    
+    console.log("inside login function");
     e.preventDefault();
     
     setApiLoading(true);
@@ -563,6 +563,8 @@ export default function App() {
       
       // 1. Retrieve the active token from storage
       const token = localStorage.getItem('authToken');
+      if(!token) return;
+
       const userID = user?.id;
 
       try {
@@ -1974,7 +1976,7 @@ export default function App() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-            <button type="submit" disabled={apiLoading} className="btn-primary-action">
+            <button type="submit" className="btn-primary-action">
               {t.loginBtn}
             </button>
           </form>
@@ -2093,7 +2095,7 @@ export default function App() {
                   </div>
                 ) : (
                   <div className="accounts-grid-layout">
-                    {users.map((acc) => (
+                    {users?.map?.((acc) => (
                       <div key={acc.user_id} className="account-profile-card clickable" onClick={() => setSelectedUser(acc)}>
                         <div className="account-card-header">
                           <span className="account-avatar">💼</span>
@@ -2104,8 +2106,14 @@ export default function App() {
                           </div>
                         </div>
                         <div className="account-card-meta">
-                          <span className="account-role-tag">Role: {acc.role || 'Member'}</span>
-                          <span className="account-role-tag">Dis? {acc.disabled_at || 'Member'}</span>
+                          <span className="account-role-tag">{t.role} {acc.role || 'Member'}</span>
+                          <span className="account-role-tag"> {acc.disabled_at ? (
+                          <>
+                            {t.disabled} {acc.disabled_at}
+                          </>
+                          ) : (
+                           <span style={{ color: 'lightgreen' }}>{t.active}</span>
+                          )}</span>
                         </div>
                       </div>
                     ))}
@@ -2141,6 +2149,17 @@ export default function App() {
               <div className="data-field-row">
                 <span className="field-label">{t.userRole}</span>
                 <span className="field-value">{selectedUser.role || 'Member'}</span>
+              </div>
+              <div className="data-field-row">
+                <span className="account-role-tag">
+                  {selectedUser.disabled_at ? (
+                  <>
+                    {t.disabled} {selectedUser.disabled_at}
+                  </>
+                  ) : (
+                    <span style={{ color: 'lightgreen' }}>{t.active}</span>
+                  )}
+                </span>
               </div>
             </div>
 

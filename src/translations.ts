@@ -1,6 +1,8 @@
 export type LangCode = 'RU' | 'EN';
 
 export interface LocaleTokens {
+    disabled: string;
+    active: string;
     profiles_found: string;
     one_Day: string;
     seven_Days: string;
@@ -168,13 +170,15 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     retrive_event_names: "Получить список событий",
     execution_failed: "Операция не выполнена",
     execution_complete: "Операция завершена",
-    account_identifier: "Идентификатор аккаунта (ID):",
+    account_identifier: "Идентификатор аккаунта",
     assigned_profile_scope_role: "Роль",
     userID: "Идентификатор пользователя (ID):",
     userRole: "Роль",
     active_accounts_infrastructure: "Активные аккаунты",
     syncing_secure_account_access_registries: "Синхронизация...",
-    profiles_found: "Учетных записей найдено: "
+    profiles_found: "Учетных записей найдено: ",
+    disabled: "Отключён: ",
+    active: "Активный"
   },
   EN: {
     WelcomeName: 'Welcome',
@@ -255,12 +259,14 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     retrive_event_names: "Retrive Event Names",
     execution_failed: "Execution Failed",
     execution_complete: "Execution Complete",
-    account_identifier: "Account Identifier (ID):",
+    account_identifier: "Account Identifier",
     assigned_profile_scope_role: "Assigned Profile Scope Role",
     userID: "User ID:",
     userRole: "User Role",
     active_accounts_infrastructure: "Active Accounts Infrastructure",
     syncing_secure_account_access_registries: "Syncing secure account access registries",
-    profiles_found: "Profiles found: "
+    profiles_found: "Profiles found: ",
+    disabled: "Disabled at: ",
+    active: "Active"
   }
 };
