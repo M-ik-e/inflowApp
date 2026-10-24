@@ -649,6 +649,7 @@
 }
 
 .activity-feed {
+  display: inline-flex;
   margin-top: 25px;
   width: 100%;
   background: rgba(0, 0, 0, 0.2);

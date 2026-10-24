@@ -1,6 +1,23 @@
 export type LangCode = 'RU' | 'EN';
 
 export interface LocaleTokens {
+    muted: string;
+    positive: string;
+    neutral: string;
+    warning: string;
+    close: string;
+    get_tracking_link: string;
+    get_campaign_costs: string;
+    add_a_record_to_campaign_costs: string;
+    split_and_retargeting_audience: string;
+    source_id: string;
+    campaign_id: string;
+    creative_id: string;
+    campaign_name: string;
+    amount: string;
+    currency: string;
+    holdoutDays: string;
+    destination_url: string;
     disabled: string;
     active: string;
     profiles_found: string;
@@ -142,7 +159,7 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     cancel: "Отмена",
     confirm: "Подвердить",
     one_Day: "1 День",
-    seven_Days: "2 Дня",
+    seven_Days: "7 Дней",
     fourteen_Days: "14 Дней",
     thirty_Days: "30 Дней",
     select_or_review_credentials_configurations_associated_with_your_core_user_scope: "Выберите аккаунт:",
@@ -178,7 +195,24 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     syncing_secure_account_access_registries: "Синхронизация...",
     profiles_found: "Учетных записей найдено: ",
     disabled: "Отключён: ",
-    active: "Активный"
+    active: "Активный",
+    destination_url: "Целевой URL",
+    source_id: "ID Источника",
+    campaign_id: "ID Кампании",
+    creative_id: "ID Креатива",
+    campaign_name: "Название Кампании",
+    amount: "Количество",
+    currency: "Валюта",
+    holdoutDays: "Дни Холдаута",
+    get_tracking_link: "Трекинговая ссылка",
+    get_campaign_costs: "Расчет затрат на рекламую кампанию",
+    add_a_record_to_campaign_costs: "Добавить расход на рекламую кампанию",
+    split_and_retargeting_audience: "Сплит и Ретаргетинг аудитории",
+    close: "Закрыть",
+    warning: "Требует Внимания!",
+    muted: "На грани",
+    positive: "Позитив",
+    neutral: "Нейтрально"
   },
   EN: {
     WelcomeName: 'Welcome',
@@ -267,6 +301,23 @@ export const dictionary: Record<LangCode, LocaleTokens> = {
     syncing_secure_account_access_registries: "Syncing secure account access registries",
     profiles_found: "Profiles found: ",
     disabled: "Disabled at: ",
-    active: "Active"
+    active: "Active",
+    destination_url: "Destination URL(absolute http/https)",
+    source_id: "Source ID",
+    campaign_id: "Campaign ID",
+    creative_id: "Creative ID",
+    campaign_name: "Campaign Name",
+    amount: "Amount",
+    currency: "Currency",
+    holdoutDays: "HoldOut Days",
+    get_tracking_link: "Get Tracking link",
+    get_campaign_costs: "Get Campaign cost",
+    add_a_record_to_campaign_costs: "Add record to campaign cost",
+    split_and_retargeting_audience: "Split and Retargeting audience",
+    close: "Close",
+    warning: "Warning!",
+    muted: "Muted",
+    positive: "Positive",
+    neutral: "Neutral"
   }
 };

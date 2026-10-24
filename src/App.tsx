@@ -78,7 +78,6 @@ export default function App() {
 
   const [currentLang, setCurrentLang] = useState<LangCode>('RU');
   const t = dictionary[currentLang];
-  
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -102,7 +101,7 @@ export default function App() {
   const [isUserAdditionModalOpen, setIsUserAdditionModalOpen] = useState(false);
 
   const handleChangeUserRole = (confirmation :boolean, user_role: string) =>{
-    console.log("HandleChangeroll func");
+    
     setClickSourceForModal('change_role');
     setUserRole(user_role);
     handleConfirmationProcess(confirmation);
@@ -123,6 +122,7 @@ export default function App() {
   };
 
   const handleAccountCreate = (companyName: string) => {
+    console.log("What im doing here?..")
     setCreateCompanyName(companyName);
     createAnAccount();
   }
@@ -130,7 +130,6 @@ export default function App() {
   useEffect(() => {
     console.log("confirmation hit now: ", confirmationHit);
     if(!confirmationHit)return;
-    console.log("Confirmation hit detected");
 
     if(clickSourceForModal === 'accountDeletion'){
           deleteAccount();
@@ -143,7 +142,6 @@ export default function App() {
   }, [confirmationHit]);
     
   const handleConfirmationProcess = (confirmation: boolean) =>{
-    console.log("handleConfirmationProcess func");
     setConfirmationHit(confirmation);  
   }
 
@@ -153,6 +151,7 @@ export default function App() {
   const [apiLoading, setApiLoading] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccessData, setApiSuccessData] = useState<any | null>(null);
+  const [apiFunctionCalled, setApiFunctionCalled] = useState('');
 
   //analytics tab variables and functions
   const [startDate, setStartDate] = useState<string>('');
@@ -266,7 +265,7 @@ export default function App() {
   
   useEffect(() => {
     if (!selectedAccount) return;
-
+    console.log("Use Effect 269");
     const getAllusersOnTheAcoount = async () => {
     setApiLoading(true);
     setApiError(null);
@@ -319,7 +318,6 @@ export default function App() {
       let querry = '/api/v1/users';
 
       const token = localStorage.getItem('authToken');
-
       const queryParams = new URLSearchParams();
 
       const appendIfValid = (key: string, value: string | undefined | null) => {
@@ -359,17 +357,11 @@ export default function App() {
         payload.disabled = true;
       
       }else if(functioncase === 'disable'){
-        console.log("We are at delete function, selected user is", selectedUser);
-        
         setMethod('DELETE');
+
         querry += `/${selectedUserId}`
       }
   
-      console.log("requst sent with request", querry);
-      console.log("requst sent with accountid", selectedAccountId);
-      console.log("requst sent with userId", selectedUserId);
-      console.log("requst sent with token", token);
-      console.log("requst sent with payload", payload);
         try {
           const response = await fetch(querry, {
           method: method,
@@ -464,9 +456,7 @@ export default function App() {
 
   // 2. Automatically clean up or update localStorage when state changes
   useEffect(() => {
-    //console.log('Token useeffect triggered. Current token:', token);
     if (token) {
-      //console.log('Current token:', token);
       localStorage.setItem('authtoken', token);
     } else {
       localStorage.removeItem('authtoken');
@@ -474,9 +464,8 @@ export default function App() {
   }, [token]);
 
   useEffect(() => {
-    //console.log('User useeffect triggered. Current user:', user);
+    console.log("Use Effect 479");
     if (user) {
-      //console.log('Current user:', user);
       localStorage.setItem('authuser', JSON.stringify(user));
     } else {
       localStorage.removeItem('authuser');
@@ -484,7 +473,6 @@ export default function App() {
   }, [user]);
 
   const handleFormSubmission = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    console.log("inside login function");
     e.preventDefault();
     
     setApiLoading(true);
@@ -519,7 +507,6 @@ export default function App() {
       
       // 4. Securely store the token for subsequent API requests
       localStorage.setItem('authToken', loginData.access_token);
-      console.log('loginData received', loginData);
       // 2. SECOND CALL: GET request with API Key AND Bearer Token
       const dataResponse = await fetch('/api/v1/me', {
         method: 'GET',
@@ -532,7 +519,6 @@ export default function App() {
 
       const userData = await dataResponse.json();
 
-      console.log("User data returned ", userData);
       // 5. Update your app state with user info
       updateUserField('id', userData.id);
       updateUserField('username', userData.display_name);
@@ -556,7 +542,7 @@ export default function App() {
     if(!user && !accounts) return;
 
     const fetchSignedUsreRole = async () => {
-
+      
       setApiLoading(true);
       setApiError(null);
       setApiSuccessData(null);
@@ -564,6 +550,9 @@ export default function App() {
       // 1. Retrieve the active token from storage
       const token = localStorage.getItem('authToken');
       if(!token) return;
+      
+      const accountId = accounts[0]?.account_id || '';
+      if(!accounts) return;
 
       const userID = user?.id;
 
@@ -574,7 +563,7 @@ export default function App() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
-            'X-Account-Id': accounts[0].account_id
+            'X-Account-Id': accountId
           }
         });
 
@@ -814,15 +803,16 @@ export default function App() {
   }
 
   //MARK tracking link variables and functions
-  const [trackingLinkDestinationURL, setTrackingLinkDestinationURL] = useState<string>('https://inflowmetrics.site/');
-  const [trackingLinkSourceID, setTrackingLinkSourceID] = useState<string>('56789');
-  const [trackingLinkCampaignID, setTrackingLinkCampaignID] = useState<string>('1234');
-  const [trackingLinkCreativeID, setTrackingLinkCreativeID] = useState<string>('12093478');
+  const [trackingLinkDestinationURL, setTrackingLinkDestinationURL] = useState<string>('https://');
+  const [trackingLinkSourceID, setTrackingLinkSourceID] = useState<string>('');
+  const [trackingLinkCampaignID, setTrackingLinkCampaignID] = useState<string>('');
+  const [trackingLinkCreativeID, setTrackingLinkCreativeID] = useState<string>('');
 
   const getTrackingLink = async () => {
     setApiLoading(true);
     setApiError(null);
     setApiSuccessData(null);
+    setApiFunctionCalled('TrackingLink');
 
     const token = localStorage.getItem('authToken');
 
@@ -853,11 +843,11 @@ export default function App() {
   }
 
   //MARK click and redirect variables and functions
-  const [clickAndRedirectSourceID, setClickAndRedirectSourceID] = useState<string>('56789');
-  const [clickAndRedirectCampaignID, setClickAndRedirectCampaignID] = useState<string>('1234');
-  const [clickAndRedirectCreativeID, setClickAndRedirectCreativeID] = useState<string>('12093478');
-  const [clickAndRedirectcookie_42, setClickAndRedirectcookie_42] = useState<string>('cookie_42');
-  const [clickAndRedirectplayer_42, setClickAndRedirectplayer_42] = useState<string>('player_42');
+  const [clickAndRedirectSourceID, setClickAndRedirectSourceID] = useState<string>('');
+  const [clickAndRedirectCampaignID, setClickAndRedirectCampaignID] = useState<string>('');
+  const [clickAndRedirectCreativeID, setClickAndRedirectCreativeID] = useState<string>('');
+  const [clickAndRedirectcookie_42, setClickAndRedirectcookie_42] = useState<string>('');
+  const [clickAndRedirectplayer_42, setClickAndRedirectplayer_42] = useState<string>('');
 
   const recordClickandRedirect = async () => {
     setApiLoading(true);
@@ -897,14 +887,15 @@ export default function App() {
   }
 
   //MARK split and retargerting variables and functions
-  const [splitAndRetargetingSourceName, setSplitAndRetargetingSourceName] = useState<string>('google_ads');
-  const [splitAndRetargetingUserId, setSplitAndRetargetingUserId] = useState<string>('player_42');
+  const [splitAndRetargetingSourceName, setSplitAndRetargetingSourceName] = useState<string>('');
+  const [splitAndRetargetingUserId, setSplitAndRetargetingUserId] = useState<string>('');
   const [splitAndRetargetingHoldoutDays, setSplitAndRetargetingHoldoutDays] = useState<number>(7);
 
   const splitAndRetargeting = async () => {
     setApiLoading(true);
     setApiError(null);
     setApiSuccessData(null);
+    setApiFunctionCalled('splitAndRetargeting')
 
     const payload ={
       "source_name": splitAndRetargetingSourceName,
@@ -938,6 +929,7 @@ export default function App() {
     setApiLoading(true);
     setApiError(null);
     setApiSuccessData(null);
+    setApiFunctionCalled('listCampaignSpends')
 
     const queryParams = new URLSearchParams();
     const appendIfValid = (key: string, value: string | undefined | null) => {
@@ -968,18 +960,19 @@ export default function App() {
   }
 
   //Mark record campaign spend variables and functions
-  const [recordCampaignSpendSourceName, setRecordCampaignSpendSourceName] = useState<string>('google_ads');
-  const [recordCampaignSpendCampaignName, setRecordCampaignSpendCampaignName] = useState<string>('Brand_Keywords_GEO_1');
-  const [recordCampaignSpendAmount, setRecordCampaignSpendAmount] = useState<number>(100);
-  const [recordCampaignSpendCurrency, setRecordCampaignSpendCurrency] = useState<string>('USD');
-  const [recordCampaignSpendPeriodStart, setRecordCampaignSpendPeriodStart] = useState<string>('2024-01-01');
-  const [recordCampaignSpendPeriodEnd, setRecordCampaignSpendPeriodEnd] = useState<string>('2024-01-31');
+  const [recordCampaignSpendSourceName, setRecordCampaignSpendSourceName] = useState<string>('');
+  const [recordCampaignSpendCampaignName, setRecordCampaignSpendCampaignName] = useState<string>('');
+  const [recordCampaignSpendAmount, setRecordCampaignSpendAmount] = useState<number>(0);
+  const [recordCampaignSpendCurrency, setRecordCampaignSpendCurrency] = useState<string>('');
+  const [recordCampaignSpendPeriodStart, setRecordCampaignSpendPeriodStart] = useState<string>('');
+  const [recordCampaignSpendPeriodEnd, setRecordCampaignSpendPeriodEnd] = useState<string>('');
 
 
   const recordCampaignSpend = async () => {
     setApiLoading(true);
     setApiError(null);
     setApiSuccessData(null);
+    setApiFunctionCalled('recordCampaignSpend')
 
     const payload ={
       "costs": [
@@ -1222,6 +1215,7 @@ export default function App() {
         setApiLoading(true);
         setApiError(null);
         setApiSuccessData(null);
+        setApiFunctionCalled('IncrementalityTest');
     
         const token = localStorage.getItem('authToken');
     
@@ -1242,8 +1236,7 @@ export default function App() {
         appendIfValid('target_event2', targetEvent2?.substring(0, 255));
         appendIfValid('dimension_key', dimensionKey?.substring(0, 255));
         appendIfValid('dimension_value', dimensionValue?.substring(0, 255));
-    
-    
+
         try {
             // Append query parameters to the target endpoint
             const response = await fetch(`/api/v1/analytics/incrementality?${queryParams.toString()}`, {
@@ -1266,6 +1259,7 @@ export default function App() {
             setApiError(err.message || 'An error occurred triggering function.');
         } finally {
             setApiLoading(false);
+            //setApiFunctionCalled('');
         }
     };
     //end of analytics tab variables and functions
@@ -1275,6 +1269,7 @@ export default function App() {
         setApiLoading(true);
         setApiError(null);
         setApiSuccessData(null);
+        setApiFunctionCalled('UpliftAnalysis');
 
         const accountId = localStorage.getItem('account_id') || ''; // Default to first account if available
         const token = localStorage.getItem('authToken');
@@ -1316,6 +1311,7 @@ export default function App() {
             setApiError(err.message || 'An error occurred running Uplift analysis.');
         } finally {
             setApiLoading(false);
+            //setApiFunctionCalled('');
         }
     };
     //end of uplit variables and functions
@@ -1326,6 +1322,7 @@ export default function App() {
         setApiLoading(true);
         setApiError(null);
         setApiSuccessData(null);
+        setApiFunctionCalled('CohortAnalysis')
 
         const accountId = localStorage.getItem('account_id') || ''; // Default to first account if available
         const token = localStorage.getItem('authToken');
@@ -1360,8 +1357,8 @@ export default function App() {
         setApiLoading(true);
         setApiError(null);
         setApiSuccessData(null);
-
-        const accountId = localStorage.getItem('account_id') || ''; // Default to first account if available
+        setApiFunctionCalled('EventNamesAnalysis')
+        
         const token = localStorage.getItem('authToken');
 
         const queryParams = new URLSearchParams({
@@ -1530,7 +1527,7 @@ export default function App() {
                         >
                           {/* If the array is empty, give a clean fallback state */}
                           {accounts.length === 0 && (
-                            <option value="">No options available</option>
+                            <option value="">{t.no_option_available}</option>
                           )}
 
                           {/*Automatically loops through any quantity of elements */}
@@ -1543,28 +1540,29 @@ export default function App() {
 
                       <div className='metric-card'>
                         <div className="form-input-block">
-                            <label>destination url(absolute http/https)</label>
+                            <label>{t.destination_url}</label>
                             <input type="text" maxLength={255} value={trackingLinkDestinationURL} onChange={(e) => setTrackingLinkDestinationURL(e.target.value)}  />
                           </div>
                         
                         {/* Event Source and Name */}
+                        <p className='spacer'></p>
                         <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>source_id</label>
+                            <label>{t.source_id}</label>
                             <input type="text" maxLength={255} value={trackingLinkSourceID} onChange={(e) => setTrackingLinkSourceID(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>campaign_id</label>
+                            <label>{t.campaign_id}</label>
                             <input type="text" maxLength={255} value={trackingLinkCampaignID} onChange={(e) => setTrackingLinkCampaignID(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>creative_id</label>
+                            <label>{t.creative_id}</label>
                             <input type="text" maxLength={255} value={trackingLinkCreativeID} onChange={(e) => setTrackingLinkCreativeID(e.target.value)}  />
                           </div>
                         </div>
 
                         <div className="metric-card">
-                          <button className="marketing-submit-btn" onClick={getTrackingLink} type="button">Get Tracking link</button>
+                          <button className="marketing-submit-btn" onClick={getTrackingLink} type="button">{t.get_tracking_link}</button>
                         </div>
                       </div>
                     <hr className='horizontalLineStyle' />
@@ -1573,18 +1571,18 @@ export default function App() {
                       {/* DATE CAPTURING ROW */}
                       <div className="form-group-row">
                         <div className="form-input-block">
-                          <label>Start Date</label>
+                          <label>{t.start_date}</label>
                           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
                         </div>
                         <div className="form-input-block">
-                          <label>End Date</label>
+                          <label>{t.end_date}</label>
                           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
                         </div>
                       </div>
                       
                       <div className="metrics-grid">
                         <div className="metric-card">
-                          <button className="marketing-submit-btn" onClick={listCampaignSpends} type="button">Get Campaign costs</button>
+                          <button className="marketing-submit-btn" onClick={listCampaignSpends} type="button">{t.get_campaign_costs}</button>
                         </div>
                       </div>
                     </div>
@@ -1594,21 +1592,21 @@ export default function App() {
                       
                       <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>source_name</label>
+                            <label>{t.source_name}</label>
                             <input type="text" maxLength={255} value={recordCampaignSpendSourceName} onChange={(e) => setRecordCampaignSpendSourceName(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>campaign_name</label>
+                            <label>{t.campaign_name}</label>
                             <input type="text" maxLength={255} value={recordCampaignSpendCampaignName} onChange={(e) => setRecordCampaignSpendCampaignName(e.target.value)}  />
                           </div>
                       </div>
                       <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>amount</label>
+                            <label>{t.amount}</label>
                             <input type="text" value={recordCampaignSpendAmount} onChange={(e) => setRecordCampaignSpendAmount(e.target.valueAsNumber)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>currency</label>
+                            <label>{t.currency}</label>
                             <input type="text" maxLength={255} value={recordCampaignSpendCurrency} onChange={(e) => setRecordCampaignSpendCurrency(e.target.value)}  />
                           </div>
                       </div>
@@ -1616,18 +1614,18 @@ export default function App() {
                       {/* DATE CAPTURING ROW */}
                       <div className="form-group-row">
                         <div className="form-input-block">
-                          <label>Start Date</label>
+                          <label>{t.start_date}</label>
                           <input type="date" value={recordCampaignSpendPeriodStart} onChange={(e) => setRecordCampaignSpendPeriodStart(e.target.value)} required />
                         </div>
                         <div className="form-input-block">
-                          <label>End Date</label>
+                          <label>{t.end_date}</label>
                           <input type="date" value={recordCampaignSpendPeriodEnd} onChange={(e) => setRecordCampaignSpendPeriodEnd(e.target.value)} required />
                         </div>
                       </div>
                       
                       <div className="metrics-grid">
                         <div className="metric-card">
-                          <button className="marketing-submit-btn" onClick={recordCampaignSpend} type="button">Add a record to campaign costs</button>
+                          <button className="marketing-submit-btn" onClick={recordCampaignSpend} type="button">{t.add_a_record_to_campaign_costs}</button>
                         </div>
                       </div>
                     </div>
@@ -1635,24 +1633,25 @@ export default function App() {
                     <div className='metric-card'> 
                       <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>source_name</label>
+                            <label>{t.source_name}</label>
                             <input type="text" maxLength={255} value={splitAndRetargetingSourceName} onChange={(e) => setSplitAndRetargetingSourceName(e.target.value)}  />
                           </div>
                           <div className="form-input-block">
-                            <label>holdoutDays</label>
+                            <label>{t.holdoutDays}</label>
                             <input type="text" maxLength={255} value={splitAndRetargetingHoldoutDays} onChange={(e) => setSplitAndRetargetingHoldoutDays(e.target.valueAsNumber)}  />
                           </div>
                       </div>
+                      <p className='spacer'></p>
                       <div className="form-group-row">
                           <div className="form-input-block">
-                            <label>Users_id</label>
+                            <label>{t.userID}</label>
                             <input type="text" value={splitAndRetargetingUserId} onChange={(e) => setSplitAndRetargetingUserId(e.target.value)}  />
                           </div>
                       </div>
                     
                       <div className="metrics-grid">
                         <div className="metric-card">
-                          <button className="marketing-submit-btn" onClick={splitAndRetargeting} type="button">Add a record to campaign costs</button>
+                          <button className="marketing-submit-btn" onClick={splitAndRetargeting} type="button">{t.split_and_retargeting_audience}</button>
                         </div>
                       </div>
                     </div>
@@ -1723,7 +1722,7 @@ export default function App() {
                             {!apiLoading && !apiError && (
                               <div className="accounts-list-container">
                                 <p style={{ color: '#aaa', margin: '0 0 5px 0' }}>{t.select_or_review_credentials_configurations_associated_with_your_core_user_scope}</p>
-                                
+                              
                                 {accounts.length === 0 ? (
                                   <div className="activity-feed">
                                     <p style={{ margin: 0, color: '#ccc' }}>{t.no_verified_accounts_detected_for_this_profile}</p>
@@ -1844,7 +1843,6 @@ export default function App() {
                           </div>
                         </div>
 
-
                         {/* TEXT KEY STRINGS - ROW 1 */}
                         <div className="form-group-row">
                           <div className="form-input-block">
@@ -1883,16 +1881,10 @@ export default function App() {
                           {apiLoading ? t.loading : t.retrive_event_names}
                         </button>
                       </form>
-
-                      {/* API PROCESSING OUTPUT VIEWS */}
-                      {apiError && <div className="activity-feed error-alert"><p style={{ margin: 0 }}>⚠️ {t.execution_failed} {apiError}</p></div>}
-                
-                      {apiSuccessData && (
-                        <div className="activity-feed success-alert">
-                          <h4 style={{ margin: '0 0 10px 0', color: '#FFD700' }}>✅ {t.execution_complete} </h4>
-                          <pre style={{ margin: 0, overflowX: 'auto', fontSize: '0.85rem' }}>{JSON.stringify(apiSuccessData, null, 2)}</pre>
-                        </div>
-                      )}
+                        {/*/MARK:: TEST BTN HERE /*/}
+                        {/* <button className="marketing-submit-btn" onClick={() => weebHookDataCollectionEventTest()}>
+                          Tets Button
+                        </button> */}
                 </>
                 )}
               </main>
@@ -1987,6 +1979,7 @@ export default function App() {
       
       {/* MARK: API RESULT MODAL INTERFACE WINDOW*/}
       <ApiResultModal
+        functionOrigin = {apiFunctionCalled}
         current_Lang = {currentLang} 
         apiError={apiError} 
         apiSuccessData={apiSuccessData} 
